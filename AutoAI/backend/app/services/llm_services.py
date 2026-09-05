@@ -1,226 +1,229 @@
 import os
 import json
-from openai import OpenAI
+import logging
+from typing import List, Dict, Any, Optional
+from google import genai
+from google.genai import types
 
-# Dynamic client initialization: Use real OpenAI if key is present, otherwise fallback to local LM Studio
-openai_key = os.getenv("OPENAI_API_KEY")
-lm_studio_url = os.getenv("LM_STUDIO_BASE_URL", "http://localhost:1234/v1")
-lm_studio_key = os.getenv("LM_STUDIO_API_KEY", "lm-studio")
+from app.config import GEMINI_API_KEY, GEMINI_MODEL, GEMINI_TIMEOUT
+from app.services.ai_service import explain_recommendations
 
-if openai_key and not openai_key.startswith("your-") and openai_key.strip() != "":
-    client = OpenAI(api_key=openai_key)
-    model_name = "gpt-4o-mini"
-else:
-    client = OpenAI(
-        base_url=lm_studio_url,
-        api_key=lm_studio_key,
-        timeout=10.0,
-        max_retries=1,
-    )
-    model_name = "local-model"
+logger = logging.getLogger("autoai.llm")
+
+# Initialize client lazily and safely
+_client = None
+if GEMINI_API_KEY:
+    try:
+        _client = genai.Client(api_key=GEMINI_API_KEY)
+    except Exception as e:
+        logger.warning("Could not initialize Google GenAI Client: %s", str(e))
+
+
+def get_client() -> Optional[genai.Client]:
+    global _client
+    if _client is None and GEMINI_API_KEY:
+        try:
+            _client = genai.Client(api_key=GEMINI_API_KEY)
+        except Exception as e:
+            logger.warning("Could not initialize Google GenAI Client: %s", str(e))
+    return _client
+
 
 SYSTEM_THINKING_PROMPT = """You are AutoAI, an expert, objective, and intelligent automotive AI advisor.
-Your knowledge is strictly limited to the cars provided in the system context.
-You must NEVER invent, assume, or extrapolate any specifications, features, prices, or details that are not explicitly present in the context.
+Your knowledge is strictly grounded in and limited to the verified cars provided in the system context.
+You must NEVER invent, assume, extrapolate, or hallucinate any specifications, features, prices, or details that are not explicitly present in the context.
 
-Rules:
-1. Always base all recommendations, details, and comparisons ONLY on the retrieved car details.
-2. If the user asks about a car or specification (such as torque, airbags, or anything else) that is not explicitly present in the provided context, you MUST reply: "Specification not available in the current database."
+Strict Rules:
+1. Always base all recommendations, details, rankings, and comparisons ONLY on the retrieved car details.
+2. If the user asks about a car or specification that is not explicitly present in the provided context, you MUST reply: "Specification not available in the current database."
 3. Do not mention any cars or brands that are not listed in the retrieved context.
-4. Keep your answers concise, informative, structured in clean Markdown, and under 350 words.
+4. If no cars are found in the context, clearly explain that no vehicles match in the current database. Never invent or hallucinate any car.
+5. Keep your answers concise, informative, structured in clean Markdown, and under 250 words.
 """
 
-def extract_preferences_llm(message):
-    prompt = f"""
-Extract the user's car preferences from the message.
-Return ONLY valid JSON with ONLY the fields explicitly mentioned or strongly implied by the user.
+
+def format_compact_specs(recommendations: List[Dict[str, Any]]) -> str:
+    """
+    Ultra token-efficient car spec formatting.
+    Sends only the top 5 relevant cars in a compact structured format.
+    """
+    if not recommendations:
+        return "No matching cars found in the database."
+
+    specs_list = []
+    for i, c in enumerate(recommendations[:5], start=1):
+        brand = c.get("brand", "Unknown")
+        model = c.get("model", "Unknown")
+        variant = c.get("variant", "Standard")
+        price = float(c.get("price") or c.get("ex_showroom_price") or 0.0)
+        fuel = c.get("fuel_type") or "N/A"
+        trans = c.get("transmission") or "N/A"
+        mileage = c.get("mileage", 0)
+        power = c.get("power", 0)
+        safety = c.get("safety_rating", 0)
+        seating = c.get("seating", 5)
+        maint = c.get("maintenance_cost", 0)
+        score = c.get("score", 0)
+        reasons = "; ".join(c.get("reasons", [])[:2]) if c.get("reasons") else "Matches criteria"
+
+        entry = (
+            f"{i}. **{brand} {model} ({variant})**\n"
+            f"   - Price: Rs. {price:,.0f} Ex-Showroom | Fuel: {fuel} | Trans: {trans}\n"
+            f"   - Specs: {mileage} km/l | {power} bhp | {seating} Seater | Safety: {safety}/5 Stars\n"
+            f"   - Maintenance: Rs. {maint:,.0f}/yr | Match Score: {score}/100\n"
+            f"   - Match Reasons: {reasons}"
+        )
+        specs_list.append(entry)
+
+    return "\n\n".join(specs_list)
+
+
+def extract_preferences_llm(message: str) -> Dict[str, Any]:
+    """
+    Extracts structured preferences using Gemini if needed.
+    Falls back to empty dict on failure without crashing.
+    """
+    client = get_client()
+    if not client:
+        raise RuntimeError("Gemini client is not initialized.")
+
+    prompt = f"""Extract the user's car preferences from the message.
+Return ONLY valid JSON with ONLY the fields explicitly mentioned or strongly implied.
 
 Possible JSON keys:
-"budget" (integer in INR), "fuel_type" (Petrol/Diesel/Electric/CNG/Hybrid), "transmission" (Automatic/Manual), "body_type" (SUV/Sedan/Hatchback/MPV), "family_members" (integer), "priority" (Safety/Mileage/Maintenance/Resale), "city_drive" (boolean), "highway_drive" (boolean).
+"brand" (string), "budget" (integer in INR), "status" ("CURRENT" or "UPCOMING"),
+"fuel_type" (Petrol/Diesel/Electric/CNG/Hybrid), "transmission" (Automatic/Manual),
+"body_type" (SUV/Sedan/Hatchback/MPV), "seating" (integer), "family_friendly" (boolean),
+"is_luxury" (boolean), "priority" (Safety/Mileage/Maintenance/Resale/Performance),
+"city_drive" (boolean), "highway_drive" (boolean).
 
-User Message:
-"{message}"
+User Message: "{message}"
 """
     try:
-        response = client.chat.completions.create(
-            model=model_name,
-            messages=[
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.1,
-            timeout=3.0,
+        response = client.models.generate_content(
+            model=GEMINI_MODEL,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=0.1,
+                max_output_tokens=250,
+            ),
         )
-        text = response.choices[0].message.content.strip()
+        text = response.text.strip()
         if text.startswith("```"):
             lines = text.splitlines()
             text = "\n".join(lines[1:-1] if lines[-1].startswith("```") else lines[1:])
         return json.loads(text)
     except Exception as e:
-        # Fallback to empty preferences if model call fails
-        print(f"LLM Preference Extraction failed: {e}. Falling back to empty preference dict.")
+        logger.warning("LLM preference extraction error: %s", str(e))
         raise e
 
-def generate_ai_chat_response(user_message: str, recommendations: list, preferences: dict = None):
-    rec_summary = ""
-    if recommendations:
-        rec_summary_list = []
-        for c in recommendations[:5]:
-            # Convert model object to dictionary if it's not already
-            def get_val(obj, attr, default=None):
-                if isinstance(obj, dict):
-                    return obj.get(attr, default)
-                return getattr(obj, attr, default)
 
-            brand = get_val(c, 'brand')
-            model = get_val(c, 'model')
-            variant = get_val(c, 'variant')
-            price = get_val(c, 'price') or get_val(c, 'ex_showroom_price', 0)
-            fuel = get_val(c, 'fuel_type') or get_val(c, 'fuel')
-            trans = get_val(c, 'transmission')
-            mileage = get_val(c, 'mileage')
-            engine = get_val(c, 'engine_cc') or get_val(c, 'engine')
-            power = get_val(c, 'power')
-            torque = get_val(c, 'torque') or "Specification not available in the current database."
-            seating = get_val(c, 'seating') or get_val(c, 'seating_capacity')
-            boot = get_val(c, 'boot_space')
-            gc = get_val(c, 'ground_clearance')
-            safety = get_val(c, 'safety_rating')
-            sunroof = get_val(c, 'sunroof')
-            sunroof_str = "Yes" if sunroof else "No" if sunroof is not None else "Specification not available in the current database."
-            adas = get_val(c, 'adas')
-            adas_str = "Yes" if adas else "No" if adas is not None else "Specification not available in the current database."
-            touchscreen = get_val(c, 'touchscreen_inches')
-            touchscreen_str = f"{touchscreen} inches" if touchscreen else "No" if touchscreen is not None else "Specification not available in the current database."
-            carplay = get_val(c, 'carplay_androidauto')
-            carplay_str = "Yes" if carplay else "No" if carplay is not None else "Specification not available in the current database."
-            airbags = get_val(c, 'airbags') or "Specification not available in the current database."
-            ideal = get_val(c, 'ideal_for')
-            pros = get_val(c, 'pros')
-            cons = get_val(c, 'cons')
+def generate_ai_chat_response(
+    user_message: str,
+    recommendations: List[Dict[str, Any]],
+    preferences: Optional[Dict[str, Any]] = None,
+    conversation_history: Optional[List[Dict[str, str]]] = None
+) -> str:
+    """
+    Generates an objective, fact-grounded response from Gemini.
+    - Grounded strictly on retrieved database cars
+    - Token-efficient candidate formatting
+    - Multi-turn conversational context aware
+    - Graceful fallback on API failure or missing client
+    """
+    client = get_client()
+    if not client:
+        logger.info("Gemini client unavailable, using deterministic explanation.")
+        return explain_recommendations(user_message, recommendations, preferences)
 
-            specs = (
-                f"- **{brand} {model} ({variant})**:\n"
-                f"  - Price: ₹{price:,.0f} Ex-Showroom\n"
-                f"  - Fuel & Transmission: {fuel} | {trans}\n"
-                f"  - Mileage: {mileage} kmpl\n"
-                f"  - Engine & Power: {engine} cc | {power} BHP\n"
-                f"  - Torque: {torque} Nm\n"
-                f"  - Seating & Boot Space: {seating} seater | {boot} L\n"
-                f"  - Ground Clearance: {gc} mm\n"
-                f"  - Safety Rating & Airbags: {safety}/5 GNCAP stars | {airbags}\n"
-                f"  - Sunroof & ADAS: Sunroof={sunroof_str} | ADAS={adas_str}\n"
-                f"  - Touchscreen & CarPlay/Android Auto: Screen={touchscreen_str} | CarPlay={carplay_str}\n"
-                f"  - Ideal For: {ideal}\n"
-                f"  - Pros: {pros}\n"
-                f"  - Cons: {cons}\n"
-            )
-            rec_summary_list.append(specs)
-        rec_summary = "\n".join(rec_summary_list)
-    else:
-        rec_summary = "No matching cars found in the database."
+    rec_summary = format_compact_specs(recommendations)
 
-    prompt = f"""
-User Query: "{user_message}"
+    # Build concise conversation history block if available
+    history_block = ""
+    if conversation_history:
+        history_lines = []
+        for turn in conversation_history[-4:]:
+            role = "User" if turn.get("role") == "user" else "AutoAI"
+            history_lines.append(f"{role}: {turn.get('text', '')}")
+        if history_lines:
+            history_block = "Recent Conversation Context:\n" + "\n".join(history_lines) + "\n\n"
 
-Active User Preferences Context:
+    prompt = f"""{history_block}Current User Query: "{user_message}"
+
+Active Search Preferences:
 {json.dumps(preferences or {}, indent=2)}
 
-Matching Cars Available in Database Context:
+Verified Matching Cars in Database:
 {rec_summary}
 
-Instructions: Answer the user's query directly and objectively using only the matching cars and specs above. Follow the System rules closely.
+Instructions:
+Answer the user's query directly and objectively using only the matching cars and specs above.
+If the user asks a follow-up comparison (e.g. mileage, maintenance, features), compare the verified cars listed above.
+If no matching cars are found, explain clearly that no vehicles match in the database.
+NEVER invent or hallucinate any vehicles. Follow system instructions strictly.
 """
-    response = client.chat.completions.create(
-        model=model_name,
-        messages=[
-            {"role": "system", "content": SYSTEM_THINKING_PROMPT},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.3,
-        timeout=8.0,
-    )
-    return response.choices[0].message.content
-
-def compare_cars_llm(car1, car2):
-    def get_val(obj, attr, default=None):
-        if isinstance(obj, dict):
-            return obj.get(attr, default)
-        return getattr(obj, attr, default)
-
-    def format_car(c):
-        brand = get_val(c, 'brand')
-        model = get_val(c, 'model')
-        variant = get_val(c, 'variant')
-        price = get_val(c, 'price') or get_val(c, 'ex_showroom_price', 0)
-        fuel = get_val(c, 'fuel_type') or get_val(c, 'fuel')
-        trans = get_val(c, 'transmission')
-        eng = get_val(c, 'engine_cc') or get_val(c, 'engine')
-        pwr = get_val(c, 'power')
-        trq = get_val(c, 'torque') or "Specification not available in the current database."
-        mil = get_val(c, 'mileage')
-        seats = get_val(c, 'seating') or get_val(c, 'seating_capacity')
-        boot = get_val(c, 'boot_space')
-        gc = get_val(c, 'ground_clearance')
-        safe = get_val(c, 'safety_rating')
-        bags = get_val(c, 'airbags') or "Specification not available in the current database."
-        
-        sun = get_val(c, 'sunroof')
-        sun_str = "Yes" if sun else "No" if sun is not None else "Specification not available in the current database."
-        
-        adas_val = get_val(c, 'adas')
-        adas_str = "Yes" if adas_val else "No" if adas_val is not None else "Specification not available in the current database."
-        
-        ts_val = get_val(c, 'touchscreen_inches')
-        ts_str = f"{ts_val} inches" if ts_val else "Specification not available in the current database."
-        
-        cp = get_val(c, 'carplay_androidauto')
-        cp_str = "Yes" if cp else "No" if cp is not None else "Specification not available in the current database."
-        
-        pros = get_val(c, 'pros')
-        cons = get_val(c, 'cons')
-        return (
-            f"Car: {brand} {model} {variant}\n"
-            f"- Price: ₹{price:,.0f}\n"
-            f"- Engine: {eng} cc\n"
-            f"- Power: {pwr} bhp\n"
-            f"- Torque: {trq} Nm\n"
-            f"- Mileage: {mil} km/l\n"
-            f"- Transmission: {trans}\n"
-            f"- Fuel Type: {fuel}\n"
-            f"- Seating: {seats} seats\n"
-            f"- Boot Space: {boot} L\n"
-            f"- Ground Clearance: {gc} mm\n"
-            f"- Airbags: {bags}\n"
-            f"- Safety Rating: {safe}/5 Stars\n"
-            f"- ADAS: {adas_str}\n"
-            f"- Sunroof: {sun_str}\n"
-            f"- Touchscreen: {ts_str}\n"
-            f"- CarPlay & Android Auto: {cp_str}\n"
-            f"- Pros: {pros}\n"
-            f"- Cons: {cons}\n"
+    try:
+        response = client.models.generate_content(
+            model=GEMINI_MODEL,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                system_instruction=SYSTEM_THINKING_PROMPT,
+                temperature=0.2,
+                max_output_tokens=450,
+            ),
         )
+        if response.text and response.text.strip():
+            return response.text.strip()
+        raise ValueError("Empty response received from Gemini.")
+    except Exception as e:
+        logger.warning("Gemini chat generation failed: %s. Using deterministic fallback.", str(e))
+        return explain_recommendations(user_message, recommendations, preferences)
 
-    prompt = f"""
-Compare these two cars thoroughly and summarize the differences objectively:
 
-{format_car(car1)}
+def compare_cars_llm(car1: Any, car2: Any) -> str:
+    """Compares two specific cars using Gemini, grounded on database records."""
+    client = get_client()
 
----
+    def _val(c, attr, default="N/A"):
+        if isinstance(c, dict):
+            return c.get(attr, default)
+        return getattr(c, attr, default)
 
-{format_car(car2)}
-
-Provide a direct, helpful breakdown covering:
-1. Verdict & Key Differences
-2. Recommendation on who should buy which car based strictly on these specs
-"""
-
-    response = client.chat.completions.create(
-        model=model_name,
-        messages=[
-            {"role": "system", "content": SYSTEM_THINKING_PROMPT},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.3,
-        timeout=8.0,
+    c1_str = (
+        f"{_val(car1, 'brand')} {_val(car1, 'model')} ({_val(car1, 'variant')}): "
+        f"Price: Rs. {float(_val(car1, 'price') or _val(car1, 'ex_showroom_price') or 0):,.0f}, "
+        f"Fuel: {_val(car1, 'fuel_type')}, Trans: {_val(car1, 'transmission')}, "
+        f"Mileage: {_val(car1, 'mileage')} kmpl, Power: {_val(car1, 'power')} bhp, "
+        f"Safety: {_val(car1, 'safety_rating')}/5"
     )
-    return response.choices[0].message.content
+    c2_str = (
+        f"{_val(car2, 'brand')} {_val(car2, 'model')} ({_val(car2, 'variant')}): "
+        f"Price: Rs. {float(_val(car2, 'price') or _val(car2, 'ex_showroom_price') or 0):,.0f}, "
+        f"Fuel: {_val(car2, 'fuel_type')}, Trans: {_val(car2, 'transmission')}, "
+        f"Mileage: {_val(car2, 'mileage')} kmpl, Power: {_val(car2, 'power')} bhp, "
+        f"Safety: {_val(car2, 'safety_rating')}/5"
+    )
+
+    if not client:
+        return f"### Comparison\n- **Car 1:** {c1_str}\n- **Car 2:** {c2_str}"
+
+    prompt = f"""Compare these two cars based strictly on their verified specifications:
+Car 1: {c1_str}
+Car 2: {c2_str}
+
+Provide a concise, objective comparison highlighting differences in price, power, mileage, and safety, followed by a recommendation on who should buy which car. Under 200 words.
+"""
+    try:
+        response = client.models.generate_content(
+            model=GEMINI_MODEL,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                system_instruction=SYSTEM_THINKING_PROMPT,
+                temperature=0.2,
+                max_output_tokens=350,
+            ),
+        )
+        return response.text.strip()
+    except Exception as e:
+        logger.warning("Gemini compare failed: %s", str(e))
+        return f"### Comparison\n- **Car 1:** {c1_str}\n- **Car 2:** {c2_str}"

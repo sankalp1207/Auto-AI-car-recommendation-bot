@@ -10,12 +10,12 @@ class Car(Base):
 
     model = Column(String(100), nullable=False)
 
-    variant = Column(String(100), nullable=False)
+    variant = Column(String(255), nullable=False)
 
     ex_showroom_price = Column(Float, nullable=False)
 
     body_type = Column(String(30))
-    fuel_type = Column(String(30))
+    fuel_type = Column(String(50))
     transmission = Column(String(30))
 
     engine_cc = Column(Integer)
@@ -60,3 +60,4 @@ class Car(Base):
     carplay_androidauto = Column(Boolean, default=False)
     ideal_for = Column(String, nullable=True)
     summary_embedding_text = Column(String, nullable=True)
+    status = Column(String(20), default="CURRENT")

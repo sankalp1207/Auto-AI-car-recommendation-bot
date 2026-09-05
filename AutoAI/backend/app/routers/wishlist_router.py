@@ -17,6 +17,7 @@ router = APIRouter(
 )
 
 
+@router.get("")
 @router.get("/")
 def wishlist(
     db: Session = Depends(get_db),
@@ -24,6 +25,7 @@ def wishlist(
     return get_wishlist(db)
 
 
+@router.post("")
 @router.post("/")
 def add(
     request: WishlistRequest,

@@ -1,0 +1,20 @@
+{
+  "last_successful_import": "2026-09-05T00:53:57.409715",
+  "source": "CarWale Dataset (cars_current.csv + cars_upcoming.csv)",
+  "dataset_version": "2026.09",
+  "total_records": 2245,
+  "current_records": 2076,
+  "upcoming_records": 169,
+  "archive_records": 0,
+  "last_sync_stats": {
+    "new": 0,
+    "updated": 0,
+    "unchanged": 2245,
+    "duplicates": 0,
+    "invalid": 0,
+    "archived": 0,
+    "current": 2076,
+    "upcoming": 169,
+    "total_processed": 2245
+  }
+}

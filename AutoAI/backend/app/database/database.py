@@ -5,18 +5,27 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-# Locate backend/.env
+# Locate backend/.env if running locally
 BASE_DIR = Path(__file__).resolve().parents[2]
-ENV_FILE = BASE_DIR / ".env"
+load_dotenv(dotenv_path=BASE_DIR / ".env", override=False)
 
-load_dotenv(dotenv_path=ENV_FILE)
+raw_url = os.getenv("DATABASE_URL")
+if not raw_url:
+    raise ValueError("DATABASE_URL environment variable is not set. Please provide a valid PostgreSQL connection string.")
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+# Normalize postgres:// to postgresql:// for SQLAlchemy
+if raw_url.startswith("postgres://"):
+    DATABASE_URL = raw_url.replace("postgres://", "postgresql://", 1)
+else:
+    DATABASE_URL = raw_url
 
-if DATABASE_URL is None:
-    raise Exception(f"DATABASE_URL not found. Make sure {ENV_FILE} exists.")
+# Configure engine with robust connection pooling for production
+engine_kwargs = {
+    "pool_pre_ping": True,
+    "pool_recycle": 300,
+}
 
-engine = create_engine(DATABASE_URL)
+engine = create_engine(DATABASE_URL, **engine_kwargs)
 
 SessionLocal = sessionmaker(
     autocommit=False,

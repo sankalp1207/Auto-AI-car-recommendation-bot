@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+venv/
+**/venv/
+env/
+**/.venv/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.env
+
+# Python artifacts
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+# Frontend builds
+dist/
+dist-ssr/
+.output/
+.wrangler/
+.tanstack/
+.nitro/
+
+# Logs & temp files
+*.log
+*.bak
+*.tmp
+*.zip
+error.txt
+
+# Backups and large test files
+frontend_backup/
+cars_test.json
+backend/data/backups/
+backend/data/cache/
+
+# IDE & OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db

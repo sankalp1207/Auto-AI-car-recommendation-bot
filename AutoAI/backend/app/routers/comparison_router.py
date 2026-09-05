@@ -27,6 +27,7 @@ def get_all_cars(db: Session = Depends(get_db)):
     ]
 
 
+@router.post("")
 @router.post("/")
 def compare_by_ids(
     request: ComparisonRequest,
@@ -41,6 +42,7 @@ def compare_by_ids(
     return result
 
 
+@router.get("")
 @router.get("/")
 def compare_by_names(
     car1: str,

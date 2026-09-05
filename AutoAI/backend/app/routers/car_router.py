@@ -10,9 +10,25 @@ router = APIRouter(
 )
 
 
+@router.get("")
 @router.get("/")
-def get_all_cars(db: Session = Depends(get_db)):
-    return car_data_service.get_all_cars()
+def get_all_cars(status: str = None, db: Session = Depends(get_db)):
+    return car_data_service.get_all_cars(status=status)
+
+
+@router.get("/stats")
+def get_cars_stats():
+    cars = car_data_service.get_all_cars()
+    total = len(cars)
+    current = sum(1 for c in cars if c.get("status") == "CURRENT")
+    upcoming = sum(1 for c in cars if c.get("status") == "UPCOMING")
+    brands = len(set(c.get("brand") for c in cars if c.get("brand")))
+    return {
+        "total_cars": total,
+        "current_cars": current,
+        "upcoming_cars": upcoming,
+        "total_brands": brands,
+    }
 
 
 @router.get("/{model_or_id}")
