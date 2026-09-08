@@ -1,0 +1,2 @@
+model,mae,rmse,r2,training_rows,testing_rows,cv_folds,tuning_iterations
+Extra Trees,979877.4977036278,9932500.107068732,0.5723838680016274,1758,440,5,20
