@@ -20,7 +20,7 @@
     "metrics": {
         "best_pairwise_accuracy_percent": 99.94,
         "best_validation_loss": 0.0115,
-        "total_training_time_minutes": 0.82
+        "total_training_time_minutes": 0.73
     },
     "history": [
         {
