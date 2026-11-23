@@ -31,11 +31,12 @@ print("=" * 75)
 if not MODEL_PATH.exists():
     raise FileNotFoundError(f"Model checkpoint not found at: {MODEL_PATH}")
 
-if not torch.cuda.is_available():
-    raise RuntimeError("CUDA GPU is required but not detected.")
-
-DEVICE = torch.device("cuda:0")
-GPU_NAME = torch.cuda.get_device_name(0)
+if torch.cuda.is_available():
+    DEVICE = torch.device("cuda:0")
+    GPU_NAME = torch.cuda.get_device_name(0)
+else:
+    DEVICE = torch.device("cpu")
+    GPU_NAME = "CPU"
 print(f"Device:    {DEVICE} ({GPU_NAME})")
 print(f"Artifact:  {MODEL_PATH.name}")
 

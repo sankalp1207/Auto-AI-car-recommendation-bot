@@ -37,33 +37,37 @@ print("=" * 75)
 print("AUTOAI - NEURAL RECOMMENDATION & RANKING MODEL TRAINING")
 print("=" * 75)
 
-if not torch.cuda.is_available():
-    raise RuntimeError(
-        "FATAL ERROR: CUDA GPU acceleration is required, but PyTorch reports "
-        "CUDA is unavailable! Training cannot proceed on CPU."
-    )
-
-DEVICE = torch.device("cuda:0")
-GPU_NAME = torch.cuda.get_device_name(0)
-CUDA_VERSION = torch.version.cuda
-TOTAL_VRAM_GB = torch.cuda.get_device_properties(0).total_memory / (1024 ** 3)
-
-print(f"\n[HARDWARE ACCELERATION]")
-print(f"  Device:           {DEVICE}")
-print(f"  GPU Detected:     {GPU_NAME}")
-print(f"  Total VRAM:       {TOTAL_VRAM_GB:.2f} GB")
-print(f"  CUDA Version:     {CUDA_VERSION}")
-print(f"  PyTorch Version:  {torch.__version__}")
-print(f"  Status:           NVIDIA GPU Acceleration ACTIVE\n")
+if torch.cuda.is_available():
+    DEVICE = torch.device("cuda:0")
+    GPU_NAME = torch.cuda.get_device_name(0)
+    CUDA_VERSION = torch.version.cuda
+    TOTAL_VRAM_GB = torch.cuda.get_device_properties(0).total_memory / (1024 ** 3)
+    print(f"\n[HARDWARE ACCELERATION]")
+    print(f"  Device:           {DEVICE}")
+    print(f"  GPU Detected:     {GPU_NAME}")
+    print(f"  Total VRAM:       {TOTAL_VRAM_GB:.2f} GB")
+    print(f"  CUDA Version:     {CUDA_VERSION}")
+    print(f"  PyTorch Version:  {torch.__version__}")
+    print(f"  Status:           NVIDIA GPU Acceleration ACTIVE\n")
+else:
+    DEVICE = torch.device("cpu")
+    GPU_NAME = "CPU"
+    CUDA_VERSION = "N/A"
+    TOTAL_VRAM_GB = 0.0
+    print(f"\n[HARDWARE ACCELERATION]")
+    print(f"  Device:           {DEVICE}")
+    print(f"  PyTorch Version:  {torch.__version__}")
+    print(f"  Status:           CPU Optimization ACTIVE\n")
 
 # Seed everything for reproducibility
 RANDOM_SEED = 42
 random.seed(RANDOM_SEED)
 np.random.seed(RANDOM_SEED)
 torch.manual_seed(RANDOM_SEED)
-torch.cuda.manual_seed_all(RANDOM_SEED)
-torch.backends.cudnn.deterministic = True
-torch.backends.cudnn.benchmark = False
+if torch.cuda.is_available():
+    torch.cuda.manual_seed_all(RANDOM_SEED)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
 # Paths
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -453,8 +457,9 @@ train_dataset = TripletRankingDataset(train_cars, num_samples=16000)
 val_dataset = TripletRankingDataset(val_cars, num_samples=3200)
 
 BATCH_SIZE = 128
-train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, pin_memory=True)
-val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, pin_memory=True)
+pin_mem = torch.cuda.is_available()
+train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, pin_memory=pin_mem)
+val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, pin_memory=pin_mem)
 
 print(f"  Training Triplets:   {len(train_dataset)} pairs ({len(train_loader)} batches)")
 print(f"  Validation Triplets: {len(val_dataset)} pairs ({len(val_loader)} batches)")
@@ -663,10 +668,16 @@ for epoch in range(1, NUM_EPOCHS + 1):
     mean_margin = float(np.mean(margin_diffs))
     
     # GPU VRAM Monitoring
-    allocated_mb = torch.cuda.memory_allocated(0) / (1024 ** 2)
-    reserved_mb = torch.cuda.memory_reserved(0) / (1024 ** 2)
+    if torch.cuda.is_available():
+        allocated_mb = torch.cuda.memory_allocated(0) / (1024 ** 2)
+        reserved_mb = torch.cuda.memory_reserved(0) / (1024 ** 2)
+        mem_str = f"{allocated_mb:.1f} MB"
+    else:
+        allocated_mb = 0.0
+        reserved_mb = 0.0
+        mem_str = "CPU"
     
-    print(f"{epoch:<8} {avg_train_loss:<12.4f} {avg_val_loss:<11.4f} {pairwise_acc:<14.2f} {mean_margin:<13.3f} {allocated_mb:.1f} MB")
+    print(f"{epoch:<8} {avg_train_loss:<12.4f} {avg_val_loss:<11.4f} {pairwise_acc:<14.2f} {mean_margin:<13.3f} {mem_str:<10}")
     
     training_history.append({
         "epoch": epoch,

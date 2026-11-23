@@ -2,28 +2,86 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 
-INPUT = Path("backend/ml/data/cars_ml_raw.csv")
-OUTPUT = Path("backend/ml/data/cars_ml_clean.csv")
+BASE_DIR = Path(__file__).resolve().parent
+DATA_DIR = BASE_DIR / "data"
+MAIN_DATA_PATH = BASE_DIR.parent / "data" / "cars_main.csv"
+RAW_DATA_PATH = DATA_DIR / "cars_ml_raw.csv"
+OUTPUT = DATA_DIR / "cars_ml_clean.csv"
+
+if MAIN_DATA_PATH.exists():
+    INPUT = MAIN_DATA_PATH
+elif RAW_DATA_PATH.exists():
+    INPUT = RAW_DATA_PATH
+elif Path("backend/ml/data/cars_ml_raw.csv").exists():
+    INPUT = Path("backend/ml/data/cars_ml_raw.csv")
+else:
+    raise FileNotFoundError("Source dataset not found.")
 
 df = pd.read_csv(INPUT)
+
+if "ex_showroom_price" not in df.columns and "price" in df.columns:
+    df["ex_showroom_price"] = df["price"]
+
+if "id" not in df.columns:
+    df["id"] = range(1, len(df) + 1)
+
+# Default synthetic/lifestyle features if not in catalog
+if "city_use" not in df.columns:
+    df["city_use"] = (df["mileage"].fillna(15) >= 14) | (df["fuel_type"].astype(str).str.contains("Electric|CNG", case=False, na=False)) | (df["seating"].fillna(5) <= 5)
+if "highway_use" not in df.columns:
+    df["highway_use"] = (df["power"].fillna(100) >= 90) | (df["body_type"].astype(str).str.contains("SUV|Sedan", case=False, na=False))
+if "family_friendly" not in df.columns:
+    df["family_friendly"] = (df["seating"].fillna(5) >= 5) & (df["boot_space"].fillna(350) >= 280)
+if "sunroof" not in df.columns:
+    df["sunroof"] = df["ex_showroom_price"].fillna(0) >= 1500000
+if "adas" not in df.columns:
+    df["adas"] = df["ex_showroom_price"].fillna(0) >= 2000000
+if "carplay_androidauto" not in df.columns:
+    df["carplay_androidauto"] = True
+if "maintenance_cost" not in df.columns:
+    df["maintenance_cost"] = np.clip(df["ex_showroom_price"].fillna(1000000) * 0.015, 15000, 75000)
+if "resale_rating" not in df.columns:
+    reliable_brands = ["Maruti Suzuki", "Toyota", "Honda", "Hyundai"]
+    df["resale_rating"] = np.where(df["brand"].isin(reliable_brands), 4.5, 4.0)
+if "touchscreen_inches" not in df.columns:
+    df["touchscreen_inches"] = np.where(df["ex_showroom_price"].fillna(0) >= 3000000, 12.3, 10.25)
+if "year" not in df.columns:
+    df["year"] = 2026
 
 print("=== ORIGINAL DATA ===")
 print("Rows:", len(df))
 print("Columns:", len(df.columns))
 
 # ------------------------------------------------------------------
-# 1. Remove columns that are completely empty
+# 1. Remove non-essential columns that are completely empty
 # ------------------------------------------------------------------
+
+essential_columns = set([
+    "brand", "model", "variant", "body_type", "fuel_type", "transmission", "status",
+    "ex_showroom_price", "price", "engine_cc", "power", "torque", "mileage",
+    "seating", "boot_space", "ground_clearance", "safety_rating", "maintenance_cost",
+    "resale_rating", "touchscreen_inches", "year", "city_use", "highway_use",
+    "family_friendly", "sunroof", "adas", "carplay_androidauto", "id"
+])
 
 empty_columns = [
     column for column in df.columns
-    if df[column].isna().all()
+    if df[column].isna().all() and column not in essential_columns
 ]
 
-print("\nCompletely empty columns:")
+print("\nCompletely empty non-essential columns dropped:")
 print(empty_columns)
 
 df = df.drop(columns=empty_columns)
+
+# If essential columns are empty, supply initial baseline before median imputation
+if "boot_space" in df.columns and (df["boot_space"].isna().all() or df["boot_space"].nunique() <= 1):
+    df["boot_space"] = np.where(df["body_type"].astype(str).str.contains("SUV", case=False), 420.0,
+                        np.where(df["body_type"].astype(str).str.contains("Sedan", case=False), 480.0, 300.0))
+
+if "ground_clearance" in df.columns and (df["ground_clearance"].isna().all() or df["ground_clearance"].nunique() <= 1):
+    df["ground_clearance"] = np.where(df["body_type"].astype(str).str.contains("SUV", case=False), 190.0,
+                             np.where(df["body_type"].astype(str).str.contains("Sedan", case=False), 165.0, 160.0))
 
 # ------------------------------------------------------------------
 # 2. Normalize categorical values

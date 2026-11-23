@@ -105,6 +105,7 @@ BRAND_CANONICAL_MAP = {
     "vinfast": "VinFast",
     "jsw": "JSW",
     "pravaig": "Pravaig",
+    "denza": "Denza",
     # Discontinued / exited brands
     "ford": "Ford",
     "chevrolet": "Chevrolet",

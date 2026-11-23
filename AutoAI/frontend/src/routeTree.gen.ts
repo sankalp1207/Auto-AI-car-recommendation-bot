@@ -13,6 +13,9 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as CompareRouteImport } from './routes/compare'
+import { Route as DataQualityRouteImport } from './routes/data-quality'
+import { Route as FinderRouteImport } from './routes/finder'
+import { Route as LaunchesRouteImport } from './routes/launches'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as QuizRouteImport } from './routes/quiz'
 import { Route as RegisterRouteImport } from './routes/register'
@@ -37,6 +40,21 @@ const ChatRoute = ChatRouteImport.update({
 const CompareRoute = CompareRouteImport.update({
   id: '/compare',
   path: '/compare',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DataQualityRoute = DataQualityRouteImport.update({
+  id: '/data-quality',
+  path: '/data-quality',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinderRoute = FinderRouteImport.update({
+  id: '/finder',
+  path: '/finder',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LaunchesRoute = LaunchesRouteImport.update({
+  id: '/launches',
+  path: '/launches',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -70,6 +88,9 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/chat': typeof ChatRoute
   '/compare': typeof CompareRoute
+  '/data-quality': typeof DataQualityRoute
+  '/finder': typeof FinderRoute
+  '/launches': typeof LaunchesRoute
   '/login': typeof LoginRoute
   '/quiz': typeof QuizRoute
   '/register': typeof RegisterRoute
@@ -81,6 +102,9 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/chat': typeof ChatRoute
   '/compare': typeof CompareRoute
+  '/data-quality': typeof DataQualityRoute
+  '/finder': typeof FinderRoute
+  '/launches': typeof LaunchesRoute
   '/login': typeof LoginRoute
   '/quiz': typeof QuizRoute
   '/register': typeof RegisterRoute
@@ -93,6 +117,9 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/chat': typeof ChatRoute
   '/compare': typeof CompareRoute
+  '/data-quality': typeof DataQualityRoute
+  '/finder': typeof FinderRoute
+  '/launches': typeof LaunchesRoute
   '/login': typeof LoginRoute
   '/quiz': typeof QuizRoute
   '/register': typeof RegisterRoute
@@ -106,6 +133,9 @@ export interface FileRouteTypes {
     | '/admin'
     | '/chat'
     | '/compare'
+    | '/data-quality'
+    | '/finder'
+    | '/launches'
     | '/login'
     | '/quiz'
     | '/register'
@@ -117,6 +147,9 @@ export interface FileRouteTypes {
     | '/admin'
     | '/chat'
     | '/compare'
+    | '/data-quality'
+    | '/finder'
+    | '/launches'
     | '/login'
     | '/quiz'
     | '/register'
@@ -128,6 +161,9 @@ export interface FileRouteTypes {
     | '/admin'
     | '/chat'
     | '/compare'
+    | '/data-quality'
+    | '/finder'
+    | '/launches'
     | '/login'
     | '/quiz'
     | '/register'
@@ -140,6 +176,9 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   ChatRoute: typeof ChatRoute
   CompareRoute: typeof CompareRoute
+  DataQualityRoute: typeof DataQualityRoute
+  FinderRoute: typeof FinderRoute
+  LaunchesRoute: typeof LaunchesRoute
   LoginRoute: typeof LoginRoute
   QuizRoute: typeof QuizRoute
   RegisterRoute: typeof RegisterRoute
@@ -175,6 +214,27 @@ declare module '@tanstack/react-router' {
       path: '/compare'
       fullPath: '/compare'
       preLoaderRoute: typeof CompareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/data-quality': {
+      id: '/data-quality'
+      path: '/data-quality'
+      fullPath: '/data-quality'
+      preLoaderRoute: typeof DataQualityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/finder': {
+      id: '/finder'
+      path: '/finder'
+      fullPath: '/finder'
+      preLoaderRoute: typeof FinderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/launches': {
+      id: '/launches'
+      path: '/launches'
+      fullPath: '/launches'
+      preLoaderRoute: typeof LaunchesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -220,6 +280,9 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   ChatRoute: ChatRoute,
   CompareRoute: CompareRoute,
+  DataQualityRoute: DataQualityRoute,
+  FinderRoute: FinderRoute,
+  LaunchesRoute: LaunchesRoute,
   LoginRoute: LoginRoute,
   QuizRoute: QuizRoute,
   RegisterRoute: RegisterRoute,

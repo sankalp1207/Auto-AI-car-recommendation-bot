@@ -1,13 +1,332 @@
 {
-  "total_input_rows": "2245",
-  "valid_rows": "2245",
-  "invalid_rows": "0",
-  "duplicates": "0",
-  "new_vehicles": "0",
-  "updated_vehicles": "0",
-  "unchanged_vehicles": "2245",
-  "archived_vehicles": "0",
-  "current_vehicles": "2076",
-  "upcoming_vehicles": "169",
-  "last_sync_timestamp": "2026-09-05T00:53:57.412678"
+  "validation_timestamp": "2026-11-21T17:43:30.205804+00:00",
+  "dataset_name": "cars_main.csv",
+  "total_rows": 2235,
+  "total_columns": 28,
+  "total_issues_count": 2286,
+  "severity_counts": {
+    "ERROR": 126,
+    "WARNING": 139,
+    "INFO": 2021
+  },
+  "records_requiring_manual_review": 138,
+  "missing_data_analysis": {
+    "total_rows": 2235,
+    "fields": {
+      "brand": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "model": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "variant": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "price": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "fuel_type": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "transmission": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "body_type": {
+        "missing_count": 2021,
+        "missing_percentage": 90.43,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 2021,
+        "adjusted_missing_percentage": 90.43
+      },
+      "engine_cc": {
+        "missing_count": 308,
+        "missing_percentage": 13.78,
+        "not_applicable_count": 434,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "power": {
+        "missing_count": 16,
+        "missing_percentage": 0.72,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 16,
+        "adjusted_missing_percentage": 0.72
+      },
+      "torque": {
+        "missing_count": 35,
+        "missing_percentage": 1.57,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 35,
+        "adjusted_missing_percentage": 1.57
+      },
+      "mileage": {
+        "missing_count": 1389,
+        "missing_percentage": 62.15,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 1389,
+        "adjusted_missing_percentage": 62.15
+      },
+      "seating": {
+        "missing_count": 3,
+        "missing_percentage": 0.13,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 3,
+        "adjusted_missing_percentage": 0.13
+      },
+      "boot_space": {
+        "missing_count": 2235,
+        "missing_percentage": 100.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 2235,
+        "adjusted_missing_percentage": 100.0
+      },
+      "ground_clearance": {
+        "missing_count": 2235,
+        "missing_percentage": 100.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 2235,
+        "adjusted_missing_percentage": 100.0
+      },
+      "safety_rating": {
+        "missing_count": 972,
+        "missing_percentage": 43.49,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 972,
+        "adjusted_missing_percentage": 43.49
+      },
+      "battery_capacity": {
+        "missing_count": 1929,
+        "missing_percentage": 86.31,
+        "not_applicable_count": 1782,
+        "adjusted_missing_count": 147,
+        "adjusted_missing_percentage": 6.58
+      },
+      "range_km": {
+        "missing_count": 2007,
+        "missing_percentage": 89.8,
+        "not_applicable_count": 1782,
+        "adjusted_missing_count": 225,
+        "adjusted_missing_percentage": 10.07
+      },
+      "status": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "source": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "model_url": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "variant_url": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "launch_date": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "record_type": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "launch_date_type": {
+        "missing_count": 2021,
+        "missing_percentage": 90.43,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 2021,
+        "adjusted_missing_percentage": 90.43
+      },
+      "launch_evidence_url": {
+        "missing_count": 2021,
+        "missing_percentage": 90.43,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 2021,
+        "adjusted_missing_percentage": 90.43
+      },
+      "discovered_at": {
+        "missing_count": 2021,
+        "missing_percentage": 90.43,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 2021,
+        "adjusted_missing_percentage": 90.43
+      },
+      "source_last_verified_at": {
+        "missing_count": 2021,
+        "missing_percentage": 90.43,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 2021,
+        "adjusted_missing_percentage": 90.43
+      },
+      "data_quality_status": {
+        "missing_count": 2021,
+        "missing_percentage": 90.43,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 2021,
+        "adjusted_missing_percentage": 90.43
+      }
+    },
+    "ev_records_count": 434,
+    "ice_records_count": 1782
+  },
+  "duplicate_analysis": {
+    "exact_duplicate_rows_count": 0,
+    "duplicate_urls_count": 8,
+    "normalized_duplicate_count": 0,
+    "duplicate_groups_sample": []
+  },
+  "summary_statistics": {
+    "price": {
+      "count": 2235,
+      "min": 349900.0,
+      "max": 292000000.0,
+      "mean": 4317599.0,
+      "median": 1674000.0
+    },
+    "fuel_type_distribution": {
+      "Petrol": 1168,
+      "Diesel": 452,
+      "Electric": 434,
+      "CNG": 162,
+      "Hybrid": 16,
+      "Plug-in Hybrid": 3
+    },
+    "transmission_distribution": {
+      "Manual": 862,
+      "Automatic": 832,
+      "Automatic (DCT)": 228,
+      "Automatic (CVT)": 164,
+      "Automatic (AMT)": 149
+    },
+    "body_type_distribution": {
+      "SUV": 133,
+      "Sedan": 37,
+      "Hatchback": 33,
+      "Coupe": 9,
+      "MUV": 1,
+      "Station Wagon": 1
+    },
+    "unique_brands_count": 40,
+    "unique_models_count": 292
+  },
+  "plausibility_limits_applied": {
+    "price": {
+      "min": 150000.0,
+      "max": 500000000.0,
+      "unit": "INR",
+      "description": "Ex-showroom price in Indian Rupees"
+    },
+    "engine_cc": {
+      "min": 600.0,
+      "max": 7000.0,
+      "unit": "cc",
+      "description": "Internal combustion engine displacement"
+    },
+    "power": {
+      "min": 25.0,
+      "max": 1500.0,
+      "unit": "bhp",
+      "description": "Peak engine / motor power output"
+    },
+    "torque": {
+      "min": 40.0,
+      "max": 1800.0,
+      "unit": "Nm",
+      "description": "Peak motor / engine torque"
+    },
+    "mileage": {
+      "min": 5.0,
+      "max": 45.0,
+      "unit": "kmpl or km/kg",
+      "description": "Fuel efficiency"
+    },
+    "seating": {
+      "min": 2,
+      "max": 10,
+      "unit": "seats",
+      "description": "Passenger seating capacity"
+    },
+    "ground_clearance": {
+      "min": 100.0,
+      "max": 320.0,
+      "unit": "mm",
+      "description": "Unladen ground clearance"
+    },
+    "boot_space": {
+      "min": 50.0,
+      "max": 1200.0,
+      "unit": "litres",
+      "description": "Luggage boot capacity"
+    },
+    "safety_rating": {
+      "min": 0.0,
+      "max": 5.0,
+      "unit": "stars",
+      "description": "Global NCAP / Bharat NCAP star rating"
+    },
+    "battery_capacity": {
+      "min": 10.0,
+      "max": 250.0,
+      "unit": "kWh",
+      "description": "Electric traction battery capacity"
+    },
+    "range_km": {
+      "min": 50.0,
+      "max": 1200.0,
+      "unit": "km",
+      "description": "Claimed driving range per charge"
+    }
+  },
+  "review_actions_summary": {
+    "Value 61.9 is outside standard plausibility [5.0, 45.0] kmpl or km/kg. Verify if vehicle is an unusual/high-performance model or data error.": 1,
+    "Value 13.0 is outside standard plausibility [2, 10] seats. Verify if vehicle is an unusual/high-performance model or data error.": 2,
+    "Inspect shared variant URL; verify whether distinct trim or redundant entry.": 8,
+    "Legacy catalog entry preceding tracking cutoff date.": 2021,
+    "Electric vehicles do not have displacement. Set engine_cc to None/null.": 126,
+    "Electric vehicle missing both battery capacity and driving range.": 128
+  }
 }

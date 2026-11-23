@@ -10,7 +10,8 @@ from app.database.database import SessionLocal, Base, engine
 from app.models.car import Car
 
 BASE_DIR = Path(__file__).resolve().parents[2]
-CSV_CURRENT_PATH = BASE_DIR / "data" / "cars_current.csv"
+CSV_MAIN_PATH = BASE_DIR / "data" / "cars_main.csv"
+CSV_CURRENT_PATH = CSV_MAIN_PATH if CSV_MAIN_PATH.exists() else BASE_DIR / "data" / "cars_current.csv"
 CSV_UPCOMING_PATH = BASE_DIR / "data" / "cars_upcoming.csv"
 
 
@@ -90,12 +91,112 @@ class CarDataService:
             "variant_url": "",
         }
 
+    def _parse_row_to_dict(self, car_id: int, row: Any) -> Dict[str, Any]:
+        brand = str(row.get("brand", "Unknown")).strip()
+        model = str(row.get("model", "Unknown")).strip()
+        variant_val = row.get("variant")
+        variant = str(variant_val).strip() if pd.notna(variant_val) else ""
+        price_val = row.get("price")
+        price_inr = float(price_val) if pd.notna(price_val) else 0.0
+        body_type_val = row.get("body_type")
+        body_type = str(body_type_val).strip() if pd.notna(body_type_val) else "Unknown"
+        fuel_type_val = row.get("fuel_type")
+        fuel_type = str(fuel_type_val).strip() if pd.notna(fuel_type_val) else "Unknown"
+        transmission_val = row.get("transmission")
+        transmission = str(transmission_val).strip() if pd.notna(transmission_val) else "Unknown"
+        engine_cc = _parse_numeric(row.get("engine_cc"), int, 0)
+        power = _parse_numeric(row.get("power"), int, 0)
+        torque = _parse_numeric(row.get("torque"), int, 0)
+        mileage = float(row["mileage"]) if pd.notna(row.get("mileage")) else 0.0
+        seating = int(row["seating"]) if pd.notna(row.get("seating")) else 5
+        boot_space_val = row.get("boot_space")
+        boot_space = int(boot_space_val) if pd.notna(boot_space_val) else 0
+        gc_val = row.get("ground_clearance")
+        ground_clearance = int(gc_val) if pd.notna(gc_val) else 0
+        safety_val = row.get("safety_rating")
+        safety_rating = float(safety_val) if pd.notna(safety_val) else 0.0
+        source_val = row.get("source", "carwale.com")
+        model_url_val = row.get("model_url", "")
+        variant_url_val = row.get("variant_url", "")
+        status = str(row.get("status", "CURRENT")).strip()
+
+        maintenance_cost = int(price_inr * 0.012) if price_inr > 0 else 8000
+        maintenance_cost = max(5000, min(40000, maintenance_cost))
+
+        resale_rating = 4.0
+        brand_lower = brand.lower()
+        if "toyota" in brand_lower: resale_rating = 4.9
+        elif "maruti" in brand_lower: resale_rating = 4.8
+        elif "hyundai" in brand_lower: resale_rating = 4.5
+        elif "honda" in brand_lower: resale_rating = 4.4
+        elif "kia" in brand_lower: resale_rating = 4.3
+        elif "mahindra" in brand_lower: resale_rating = 4.2
+        elif "tata" in brand_lower: resale_rating = 4.1
+
+        city_use = True
+        highway_use = True
+        family_friendly = seating >= 5
+        image_url = "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=800&q=80"
+
+        return {
+            "id": car_id,
+            "brand": brand,
+            "model": model,
+            "variant": variant,
+            "year": 2024,
+            "ex_showroom_price": price_inr,
+            "price": price_inr,
+            "body_type": body_type,
+            "fuel_type": fuel_type,
+            "fuel": fuel_type,
+            "transmission": transmission,
+            "engine_cc": engine_cc,
+            "engine": engine_cc,
+            "power": power,
+            "torque": torque,
+            "mileage": mileage,
+            "seating": seating,
+            "seating_capacity": seating,
+            "boot_space": boot_space,
+            "ground_clearance": ground_clearance,
+            "safety_rating": safety_rating,
+            "sunroof": False,
+            "adas": False,
+            "touchscreen_inches": 0.0,
+            "touchscreen": "No",
+            "carplay_androidauto": False,
+            "wireless_android_auto": "No",
+            "wireless_apple_carplay": "No",
+            "airbags": "6 airbags" if safety_rating >= 4 else "2 airbags",
+            "ideal_for": "",
+            "summary": "",
+            "summary_embedding_text": "",
+            "status": status,
+            "maintenance_cost": maintenance_cost,
+            "resale_rating": resale_rating,
+            "city_use": city_use,
+            "highway_use": highway_use,
+            "family_friendly": family_friendly,
+            "pros": "",
+            "cons": "",
+            "pros_list": [],
+            "cons_list": [],
+            "image_url": image_url,
+            "image": image_url,
+            "source": str(source_val) if pd.notna(source_val) else "carwale.com",
+            "model_url": str(model_url_val) if pd.notna(model_url_val) else "",
+            "variant_url": str(variant_url_val) if pd.notna(variant_url_val) else "",
+        }
+
     def load_dataset(self) -> List[Dict[str, Any]]:
         """Loads current + upcoming CSVs, caching in memory and seeding the DB."""
         frames = []
-        for csv_path, label in [(CSV_CURRENT_PATH, "CURRENT"), (CSV_UPCOMING_PATH, "UPCOMING")]:
+        paths_to_load = [(CSV_CURRENT_PATH, "CURRENT")]
+        if not CSV_MAIN_PATH.exists() and CSV_UPCOMING_PATH.exists():
+            paths_to_load.append((CSV_UPCOMING_PATH, "UPCOMING"))
+
+        for csv_path, label in paths_to_load:
             if not csv_path.exists():
-                print(f"[CarDataService] WARNING: {label} CSV not found at {csv_path}")
                 continue
             part = pd.read_csv(csv_path)
             print(f"[CarDataService] Loaded {len(part)} rows from {csv_path.name} ({label})")
@@ -108,7 +209,13 @@ class CarDataService:
         df = pd.concat(frames, ignore_index=True)
         csv_row_count = len(df)
         print(f"[CarDataService] Total CSV rows to import: {csv_row_count}")
-        self._cars_cache = []
+
+        # Immediately guarantee in-memory cache availability from CSV
+        self._cars_cache = [
+            self._parse_row_to_dict(idx + 1, row)
+            for idx, row in df.iterrows()
+        ]
+        cache_rows = self._cars_cache
 
         db = SessionLocal()
         try:
@@ -329,11 +436,24 @@ class CarDataService:
             upcoming_count = sum(1 for c in cache_rows if c.get('status') == 'UPCOMING')
             print(f"[AutoAI] DATASET SYNCHRONIZED: {len(self._cars_cache)} cached ({inserted_count} inserted, {updated_count} updated, {skipped_count} skipped) — {current_count} CURRENT, {upcoming_count} UPCOMING")
         except Exception as e:
-            db.rollback()
-            self._cars_cache = []
-            print(f"[AutoAI] FAILED to synchronize database: {e}")
+            try:
+                db.rollback()
+            except Exception:
+                pass
+            if cache_rows:
+                self._cars_cache = cache_rows
+            else:
+                # Fast in-memory parsing without DB
+                self._cars_cache = [
+                    self._parse_row_to_dict(idx + 1, row)
+                    for idx, row in df.iterrows()
+                ]
+            print(f"[AutoAI] Database connection unavailable ({e}); maintaining in-memory cache with {len(self._cars_cache)} vehicles.")
         finally:
-            db.close()
+            try:
+                db.close()
+            except Exception:
+                pass
 
         return self._cars_cache
 

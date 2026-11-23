@@ -1,12 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { GitCompare, Trophy, Sparkles } from "lucide-react";
-import api, { formatINR } from "@/services/api";
+import { GitCompare, Trophy, Sparkles, Plus, X, IndianRupee, ShieldCheck, Fuel, Gauge } from "lucide-react";
+import api, { formatINR, TCOResponse } from "@/services/api";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/compare")({ component: ComparePage });
 
-interface CarOption { id: number; brand: string; model: string; variant: string; }
+interface CarOption {
+  id: number;
+  brand: string;
+  model: string;
+  variant: string;
+}
+
 interface CarSpec {
   [key: string]: any;
 }
@@ -29,151 +35,250 @@ const coreRows = [
   { label: "Touchscreen", key: "touchscreen" },
   { label: "Wireless Android Auto", key: "wireless_android_auto" },
   { label: "Wireless Apple CarPlay", key: "wireless_apple_carplay" },
-  { label: "Pros", key: "pros" },
-  { label: "Cons", key: "cons" },
 ];
 
 function ComparePage() {
   const [options, setOptions] = useState<CarOption[]>([]);
-  const [id1, setId1] = useState<number | "">("");
-  const [id2, setId2] = useState<number | "">("");
-  const [result, setResult] = useState<{ car1: CarSpec; car2: CarSpec; explanation?: string } | null>(null);
-  const [rows, setRows] = useState(coreRows);
+  const [selectedIds, setSelectedIds] = useState<(number | "")[]>(["", ""]);
+  const [result, setResult] = useState<{
+    cars?: CarSpec[];
+    tco_estimates?: TCOResponse[];
+    explanation?: string;
+    car1?: CarSpec;
+    car2?: CarSpec;
+  } | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     api.get<CarOption[]>("/compare/cars").then((r) => setOptions(r.data)).catch(() => {});
     const saved: number[] = JSON.parse(localStorage.getItem("compare") || "[]");
-    if (saved[0]) setId1(saved[0]);
-    if (saved[1]) setId2(saved[1]);
+    if (saved.length >= 2) {
+      setSelectedIds([saved[0], saved[1]]);
+    }
   }, []);
 
-  useEffect(() => {
-    if (result && result.car1 && result.car2) {
-      const excludedKeys = new Set([
-        "id", "brand", "model", "variant", "price", "fuel", "transmission",
-        "engine_cc", "engine", "power", "torque", "mileage", "seating",
-        "seating_capacity", "boot_space", "ground_clearance", "safety_rating",
-        "image", "image_url", "pros", "cons", "pros_list", "cons_list",
-        "summary", "summary_embedding_text", "year", "sunroof", "adas",
-        "touchscreen_inches", "touchscreen", "carplay_androidauto",
-        "wireless_android_auto", "wireless_apple_carplay", "ideal_for",
-        "maintenance_cost", "resale_rating", "city_use", "highway_use",
-        "family_friendly", "Unnamed: 0"
-      ]);
-
-      const additionalRows: any[] = [];
-      const keys = Object.keys(result.car1);
-      for (const key of keys) {
-        if (!excludedKeys.has(key)) {
-          const label = key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-          const v1 = result.car1[key];
-          const v2 = result.car2[key];
-          const isNum = typeof v1 === "number" && typeof v2 === "number";
-          
-          additionalRows.push({
-            label,
-            key,
-            higher: isNum ? true : undefined
-          });
-        }
-      }
-      setRows([...coreRows, ...additionalRows]);
-    } else {
-      setRows(coreRows);
+  const addSlot = () => {
+    if (selectedIds.length < 4) {
+      setSelectedIds([...selectedIds, ""]);
     }
-  }, [result]);
+  };
 
-  const [loading, setLoading] = useState(false);
+  const removeSlot = (index: number) => {
+    if (selectedIds.length > 2) {
+      const next = selectedIds.filter((_, i) => i !== index);
+      setSelectedIds(next);
+    }
+  };
+
+  const updateSelection = (index: number, val: number | "") => {
+    const next = [...selectedIds];
+    next[index] = val;
+    setSelectedIds(next);
+  };
+
+  const validIds = selectedIds.filter((id): id is number => typeof id === "number" && id > 0);
 
   const compare = async () => {
-    if (!id1 || !id2) return;
+    if (validIds.length < 2) return;
     setLoading(true);
     try {
-      const r = await api.post("/compare", { car1_id: id1, car2_id: id2 });
+      const r = await api.post("/compare", {
+        car_ids: validIds,
+        ownership_years: 5,
+        annual_kms: 12000,
+      });
       setResult(r.data);
     } catch {
-      toast?.error?.("Failed to compare vehicles");
+      toast?.error?.("Failed to compare vehicles. Try different selections.");
     } finally {
       setLoading(false);
     }
   };
 
+  const comparedCars: CarSpec[] = result?.cars || (result?.car1 && result?.car2 ? [result.car1, result.car2] : []);
+
   return (
     <div className="space-y-6">
-      <h1 className="flex items-center gap-2 text-2xl font-bold"><GitCompare className="h-6 w-6 text-primary" /> Compare Cars</h1>
-      <div className="grid gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-md sm:grid-cols-[1fr_1fr_auto]">
-        <select value={id1} onChange={(e) => setId1(+e.target.value || "")} className="input">
-          <option value="">Select first car</option>
-          {options.map((o) => <option key={o.id} value={o.id}>{o.brand} {o.model} {o.variant}</option>)}
-        </select>
-        <select value={id2} onChange={(e) => setId2(+e.target.value || "")} className="input">
-          <option value="">Select second car</option>
-          {options.map((o) => <option key={o.id} value={o.id}>{o.brand} {o.model} {o.variant}</option>)}
-        </select>
-        <button
-          onClick={compare}
-          disabled={!id1 || !id2 || loading}
-          className="rounded-lg px-5 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-40"
-          style={{ background: "var(--gradient-primary)" }}
-        >
-          {loading ? "Comparing…" : "Compare"}
-        </button>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="flex items-center gap-2 text-2xl font-bold">
+            <GitCompare className="h-6 w-6 text-primary" /> Multi-Vehicle Comparison
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Compare 2 to 4 vehicles side-by-side with 5-year TCO calculations and AI trade-off analysis.
+          </p>
+        </div>
+        {selectedIds.length < 4 && (
+          <button
+            onClick={addSlot}
+            className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium hover:bg-white/10"
+          >
+            <Plus className="h-3.5 w-3.5" /> Add Car ({selectedIds.length}/4)
+          </button>
+        )}
       </div>
 
-      {result && (
-        <div className="space-y-6">
-          <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md">
-            <div className="grid grid-cols-3 border-b border-white/10 bg-white/5 items-center">
-              <div className="p-4 text-sm font-medium text-muted-foreground">Vehicle</div>
-              <div className="p-4 space-y-2">
-                {(result.car1.image_url || result.car1.image) && (
-                  <div className="h-24 w-full overflow-hidden rounded-lg bg-muted">
-                    <img src={result.car1.image_url || result.car1.image} alt={result.car1.model} className="h-full w-full object-cover" />
-                  </div>
-                )}
-                <div className="font-semibold">{result.car1.brand} {result.car1.model}</div>
-                <div className="text-xs text-muted-foreground">{result.car1.variant}</div>
-              </div>
-              <div className="p-4 space-y-2">
-                {(result.car2.image_url || result.car2.image) && (
-                  <div className="h-24 w-full overflow-hidden rounded-lg bg-muted">
-                    <img src={result.car2.image_url || result.car2.image} alt={result.car2.model} className="h-full w-full object-cover" />
-                  </div>
-                )}
-                <div className="font-semibold">{result.car2.brand} {result.car2.model}</div>
-                <div className="text-xs text-muted-foreground">{result.car2.variant}</div>
-              </div>
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-md space-y-3">
+        <div className={`grid gap-3 ${selectedIds.length === 2 ? "sm:grid-cols-2" : selectedIds.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-4"}`}>
+          {selectedIds.map((val, idx) => (
+            <div key={idx} className="flex items-center gap-2">
+              <select
+                value={val}
+                onChange={(e) => updateSelection(idx, +e.target.value || "")}
+                className="input w-full text-xs"
+              >
+                <option value="">Select vehicle #{idx + 1}</option>
+                {options.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.brand} {o.model} {o.variant}
+                  </option>
+                ))}
+              </select>
+              {selectedIds.length > 2 && (
+                <button
+                  onClick={() => removeSlot(idx)}
+                  className="rounded-lg p-2 text-muted-foreground hover:bg-white/10 hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
             </div>
-            {rows.map((row) => {
-              const v1 = result.car1[row.key];
-              const v2 = result.car2[row.key];
-              let winner: 1 | 2 | 0 = 0;
-              if (typeof v1 === "number" && typeof v2 === "number" && row.higher !== undefined) {
-                if (v1 === v2) winner = 0;
-                else if (row.higher) winner = v1 > v2 ? 1 : 2;
-                else winner = v1 < v2 ? 1 : 2;
+          ))}
+        </div>
+
+        <div className="flex justify-end pt-2">
+          <button
+            onClick={compare}
+            disabled={validIds.length < 2 || loading}
+            className="rounded-lg px-6 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-40"
+            style={{ background: "var(--gradient-primary)" }}
+          >
+            {loading ? "Comparing…" : `Compare ${validIds.length} Vehicles`}
+          </button>
+        </div>
+      </div>
+
+      {comparedCars.length > 0 && (
+        <div className="space-y-6">
+          {/* Main Specifications Table */}
+          <div className="overflow-x-auto rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md">
+            <div
+              className="grid border-b border-white/10 bg-white/5 items-center"
+              style={{ gridTemplateColumns: `180px repeat(${comparedCars.length}, minmax(200px, 1fr))` }}
+            >
+              <div className="p-4 text-sm font-semibold text-muted-foreground">Vehicle</div>
+              {comparedCars.map((car, i) => (
+                <div key={i} className="p-4 space-y-2 border-l border-white/5">
+                  {(car.image_url || car.image) && (
+                    <div className="h-28 w-full overflow-hidden rounded-lg bg-muted">
+                      <img src={car.image_url || car.image} alt={car.model} className="h-full w-full object-cover" />
+                    </div>
+                  )}
+                  <div className="font-bold text-base leading-tight">
+                    {car.brand} {car.model}
+                  </div>
+                  <div className="text-xs text-muted-foreground">{car.variant || "Standard"}</div>
+                  <div className="text-sm font-semibold text-primary">
+                    {formatINR(car.price || car.ex_showroom_price || 0)}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {coreRows.map((row) => {
+              const vals = comparedCars.map((c) => c[row.key]);
+              const numVals = vals.filter((v): v is number => typeof v === "number");
+              let bestVal: number | null = null;
+              if (numVals.length === comparedCars.length && row.higher !== undefined) {
+                bestVal = row.higher ? Math.max(...numVals) : Math.min(...numVals);
               }
-              const fmt = (v: string | number) => row.key === "price" && typeof v === "number" ? formatINR(v) : String(v || "Specification not available in current database");
+
               return (
-                <div key={row.label} className="grid grid-cols-3 border-b border-white/5 last:border-0">
-                  <div className="p-4 text-sm text-muted-foreground">{row.label}</div>
-                  <div className={`flex items-center gap-2 p-4 text-sm ${winner === 1 ? "font-semibold text-primary" : ""}`}>
-                    {fmt(v1)} {winner === 1 && <Trophy className="h-3.5 w-3.5" />}
-                  </div>
-                  <div className={`flex items-center gap-2 p-4 text-sm ${winner === 2 ? "font-semibold text-primary" : ""}`}>
-                    {fmt(v2)} {winner === 2 && <Trophy className="h-3.5 w-3.5" />}
-                  </div>
+                <div
+                  key={row.label}
+                  className="grid border-b border-white/5 last:border-0 items-center hover:bg-white/[0.02]"
+                  style={{ gridTemplateColumns: `180px repeat(${comparedCars.length}, minmax(200px, 1fr))` }}
+                >
+                  <div className="p-3 text-xs font-medium text-muted-foreground">{row.label}</div>
+                  {comparedCars.map((c, i) => {
+                    const val = c[row.key];
+                    const isBest = bestVal !== null && typeof val === "number" && val === bestVal;
+                    const fmt = (v: any) => {
+                      if (v === null || v === undefined || v === "") return "Specification not available in current database";
+                      if (row.key === "price" && typeof v === "number") return formatINR(v);
+                      return String(v);
+                    };
+
+                    return (
+                      <div
+                        key={i}
+                        className={`p-3 text-xs border-l border-white/5 flex items-center gap-1.5 ${
+                          isBest ? "font-semibold text-primary" : ""
+                        }`}
+                      >
+                        <span>{fmt(val)}</span>
+                        {isBest && <Trophy className="h-3 w-3 text-primary shrink-0" />}
+                      </div>
+                    );
+                  })}
                 </div>
               );
             })}
           </div>
 
-          {result.explanation && (
+          {/* Feature D: Total Cost of Ownership Section */}
+          {result?.tco_estimates && result.tco_estimates.length > 0 && (
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md space-y-4">
+              <div className="flex items-center gap-2 text-lg font-semibold text-foreground">
+                <IndianRupee className="h-5 w-5 text-emerald-400" />
+                <span>5-Year Total Cost of Ownership (TCO) Comparison</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Deterministic calculation assuming 5 years ownership @ 12,000 km/year, including fuel/energy, insurance (IDV depreciation scale), and maintenance.
+              </p>
+
+              <div
+                className="grid gap-4 pt-2"
+                style={{ gridTemplateColumns: `repeat(auto-fit, minmax(220px, 1fr))` }}
+              >
+                {result.tco_estimates.map((tco, idx) => (
+                  <div key={idx} className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-3">
+                    <div className="font-semibold text-sm truncate">{tco.vehicle_name}</div>
+                    <div className="space-y-1.5 text-xs text-muted-foreground border-t border-white/5 pt-2">
+                      <div className="flex justify-between">
+                        <span>Net 5-Yr Cost:</span>
+                        <span className="font-bold text-foreground">{formatINR(tco.net_total_ownership_cost || 0)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Cost / km:</span>
+                        <span className="font-medium text-emerald-400">₹{tco.cost_per_km || 0}/km</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Monthly Equiv:</span>
+                        <span>{formatINR(tco.monthly_equivalent_cost || 0)}/mo</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Fuel/Energy:</span>
+                        <span>{formatINR(tco.fuel_total_cost || 0)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Est. Resale:</span>
+                        <span className="text-foreground">{formatINR(tco.estimated_resale_value || 0)}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* AI Verdict and Structured Trade-Offs */}
+          {result?.explanation && (
             <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md space-y-3">
-              <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
-                <Sparkles className="h-5 w-5 text-primary" /> AI Verdict & Summary
+              <h3 className="text-base font-semibold flex items-center gap-2 text-primary">
+                <Sparkles className="h-5 w-5 text-primary" /> AI Verdict & Trade-Off Analysis
               </h3>
-              <div className="text-sm leading-relaxed whitespace-pre-line text-muted-foreground border-t border-white/5 pt-4">
+              <div className="text-sm leading-relaxed whitespace-pre-line text-muted-foreground border-t border-white/5 pt-3">
                 {result.explanation}
               </div>
             </div>

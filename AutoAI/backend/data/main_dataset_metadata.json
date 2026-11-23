@@ -1,0 +1,39 @@
+{
+  "consolidated_at": "2026-11-21T17:43:02.014589+00:00",
+  "output_file": "cars_main.csv",
+  "total_available_vehicles": 2235,
+  "total_records": 2235,
+  "base_catalog_records": 2155,
+  "new_launches_integrated": 186,
+  "records_updated_with_2026_specs": 106,
+  "brand_new_records_added": 80,
+  "upcoming_records_included": 0,
+  "unique_brands": 40,
+  "unique_models": 292,
+  "price_min": 349900.0,
+  "price_max": 292000000.0,
+  "price_median": 1674000.0,
+  "fuel_type_breakdown": {
+    "Petrol": 1168,
+    "Diesel": 452,
+    "Electric": 434,
+    "CNG": 162,
+    "Hybrid": 16,
+    "Plug-in Hybrid": 3
+  },
+  "transmission_breakdown": {
+    "Manual": 862,
+    "Automatic": 832,
+    "Automatic (DCT)": 228,
+    "Automatic (CVT)": 164,
+    "Automatic (AMT)": 149
+  },
+  "body_type_breakdown": {
+    "SUV": 133,
+    "Sedan": 37,
+    "Hatchback": 33,
+    "Coupe": 9,
+    "MUV": 1,
+    "Station Wagon": 1
+  }
+}

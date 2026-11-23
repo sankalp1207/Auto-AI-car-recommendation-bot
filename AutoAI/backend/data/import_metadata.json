@@ -1,20 +1,20 @@
 {
-  "last_successful_import": "2026-09-05T00:53:57.409715",
-  "source": "CarWale Dataset (cars_current.csv + cars_upcoming.csv)",
-  "dataset_version": "2026.09",
-  "total_records": 2245,
-  "current_records": 2076,
-  "upcoming_records": 169,
+  "last_successful_import": "2026-11-21T17:46:40.052899+00:00",
+  "source": "CarWale Dataset (cars_main.csv + cars_upcoming.csv)",
+  "dataset_version": "2026.11",
+  "total_records": 2243,
+  "current_records": 2235,
+  "upcoming_records": 8,
   "archive_records": 0,
   "last_sync_stats": {
-    "new": 0,
-    "updated": 0,
-    "unchanged": 2245,
+    "new": 80,
+    "updated": 106,
+    "unchanged": 2049,
     "duplicates": 0,
     "invalid": 0,
     "archived": 0,
-    "current": 2076,
-    "upcoming": 169,
-    "total_processed": 2245
+    "current": 2235,
+    "upcoming": 8,
+    "total_processed": 2243
   }
 }

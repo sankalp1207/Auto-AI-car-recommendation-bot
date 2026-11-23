@@ -1,0 +1,33 @@
+{
+  "scrape_timestamp": "2026-11-21T17:40:26.473771+00:00",
+  "requested_date_range": {
+    "start": "2026-08-01",
+    "end": null
+  },
+  "actual_date_cutoff": "2026-08-01T00:00:00",
+  "cutoff_date_established": true,
+  "source_website": "https://www.carwale.com",
+  "scraper_version": "1.0.0",
+  "listing_pages_examined": 3,
+  "news_articles_examined": 25,
+  "detail_pages_examined": 29,
+  "total_discovered_records": 186,
+  "total_validated_records": 186,
+  "new_models_discovered": 60,
+  "new_variants_discovered": 126,
+  "facelifts_discovered": 0,
+  "special_editions_discovered": 0,
+  "existing_records_matched": 0,
+  "duplicates_removed": 0,
+  "records_excluded": 0,
+  "failed_requests": 0,
+  "output_filenames": {
+    "raw_dataset": "cars_new_launches_raw.csv",
+    "validated_dataset": "cars_new_launches.csv",
+    "upcoming_dataset": "cars_new_upcoming.csv",
+    "metadata": "scraping_metadata.json",
+    "errors": "scraping_errors.csv",
+    "quality_report": "data_quality_report.json",
+    "quality_issues": "data_quality_issues.csv"
+  }
+}

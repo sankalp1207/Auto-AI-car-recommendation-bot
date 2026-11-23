@@ -1,0 +1,362 @@
+{
+  "validation_timestamp": "2026-11-21T17:41:10.323093+00:00",
+  "dataset_name": "cars_new_launches.csv",
+  "total_rows": 186,
+  "total_columns": 28,
+  "total_issues_count": 0,
+  "severity_counts": {
+    "ERROR": 0,
+    "WARNING": 0,
+    "INFO": 0
+  },
+  "records_requiring_manual_review": 0,
+  "missing_data_analysis": {
+    "total_rows": 186,
+    "fields": {
+      "brand": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "model": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "variant": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "price": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "fuel_type": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "transmission": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "body_type": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "engine_cc": {
+        "missing_count": 35,
+        "missing_percentage": 18.82,
+        "not_applicable_count": 35,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "power": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "torque": {
+        "missing_count": 1,
+        "missing_percentage": 0.54,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 1,
+        "adjusted_missing_percentage": 0.54
+      },
+      "mileage": {
+        "missing_count": 81,
+        "missing_percentage": 43.55,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 81,
+        "adjusted_missing_percentage": 43.55
+      },
+      "seating": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "boot_space": {
+        "missing_count": 186,
+        "missing_percentage": 100.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 186,
+        "adjusted_missing_percentage": 100.0
+      },
+      "ground_clearance": {
+        "missing_count": 186,
+        "missing_percentage": 100.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 186,
+        "adjusted_missing_percentage": 100.0
+      },
+      "safety_rating": {
+        "missing_count": 172,
+        "missing_percentage": 92.47,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 172,
+        "adjusted_missing_percentage": 92.47
+      },
+      "battery_capacity": {
+        "missing_count": 151,
+        "missing_percentage": 81.18,
+        "not_applicable_count": 132,
+        "adjusted_missing_count": 19,
+        "adjusted_missing_percentage": 10.22
+      },
+      "range_km": {
+        "missing_count": 176,
+        "missing_percentage": 94.62,
+        "not_applicable_count": 132,
+        "adjusted_missing_count": 44,
+        "adjusted_missing_percentage": 23.66
+      },
+      "status": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "source": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "model_url": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "variant_url": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "launch_date": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "launch_date_type": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "launch_evidence_url": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "discovered_at": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "source_last_verified_at": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "record_type": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      },
+      "data_quality_status": {
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "not_applicable_count": 0,
+        "adjusted_missing_count": 0,
+        "adjusted_missing_percentage": 0.0
+      }
+    },
+    "ev_records_count": 35,
+    "ice_records_count": 132
+  },
+  "duplicate_analysis": {
+    "exact_duplicate_rows_count": 0,
+    "duplicate_urls_count": 0,
+    "normalized_duplicate_count": 0,
+    "duplicate_groups_sample": []
+  },
+  "summary_statistics": {
+    "price": {
+      "count": 186,
+      "min": 529990.0,
+      "max": 57200000.0,
+      "mean": 4670589.99,
+      "median": 1739000.0
+    },
+    "fuel_type_distribution": {
+      "Petrol": 90,
+      "Electric": 35,
+      "Diesel": 25,
+      "CNG": 17,
+      "Hybrid": 16,
+      "Plug-in Hybrid": 3
+    },
+    "transmission_distribution": {
+      "Automatic": 73,
+      "Manual": 53,
+      "Automatic (DCT)": 26,
+      "Automatic (AMT)": 20,
+      "Automatic (CVT)": 14
+    },
+    "body_type_distribution": {
+      "SUV": 113,
+      "Sedan": 36,
+      "Hatchback": 26,
+      "Coupe": 9,
+      "Station Wagon": 1,
+      "MUV": 1
+    },
+    "unique_brands_count": 15,
+    "unique_models_count": 29
+  },
+  "plausibility_limits_applied": {
+    "price": {
+      "min": 150000.0,
+      "max": 500000000.0,
+      "unit": "INR",
+      "description": "Ex-showroom price in Indian Rupees"
+    },
+    "engine_cc": {
+      "min": 600.0,
+      "max": 7000.0,
+      "unit": "cc",
+      "description": "Internal combustion engine displacement"
+    },
+    "power": {
+      "min": 25.0,
+      "max": 1500.0,
+      "unit": "bhp",
+      "description": "Peak engine / motor power output"
+    },
+    "torque": {
+      "min": 40.0,
+      "max": 1800.0,
+      "unit": "Nm",
+      "description": "Peak motor / engine torque"
+    },
+    "mileage": {
+      "min": 5.0,
+      "max": 45.0,
+      "unit": "kmpl or km/kg",
+      "description": "Fuel efficiency"
+    },
+    "seating": {
+      "min": 2,
+      "max": 10,
+      "unit": "seats",
+      "description": "Passenger seating capacity"
+    },
+    "ground_clearance": {
+      "min": 100.0,
+      "max": 320.0,
+      "unit": "mm",
+      "description": "Unladen ground clearance"
+    },
+    "boot_space": {
+      "min": 50.0,
+      "max": 1200.0,
+      "unit": "litres",
+      "description": "Luggage boot capacity"
+    },
+    "safety_rating": {
+      "min": 0.0,
+      "max": 5.0,
+      "unit": "stars",
+      "description": "Global NCAP / Bharat NCAP star rating"
+    },
+    "battery_capacity": {
+      "min": 10.0,
+      "max": 250.0,
+      "unit": "kWh",
+      "description": "Electric traction battery capacity"
+    },
+    "range_km": {
+      "min": 50.0,
+      "max": 1200.0,
+      "unit": "km",
+      "description": "Claimed driving range per charge"
+    }
+  },
+  "review_actions_summary": {},
+  "summary_extracted_metrics": {
+    "total_validated_records": 186,
+    "total_raw_records": 186,
+    "total_excluded_records": 0,
+    "missing_values_by_field": {
+      "brand": 0,
+      "model": 0,
+      "variant": 0,
+      "price": 0,
+      "fuel_type": 0,
+      "transmission": 0,
+      "body_type": 0,
+      "engine_cc": 35,
+      "power": 0,
+      "torque": 1,
+      "mileage": 81,
+      "seating": 0,
+      "boot_space": 186,
+      "ground_clearance": 186,
+      "safety_rating": 172,
+      "battery_capacity": 151,
+      "range_km": 176,
+      "status": 0,
+      "source": 0,
+      "model_url": 0,
+      "variant_url": 0
+    },
+    "duplicate_records_removed": 0,
+    "existing_catalog_matches": 0,
+    "invalid_prices": 0,
+    "invalid_or_missing_dates": 0,
+    "missing_launch_evidence": 0,
+    "records_with_uncertain_launch_status": 0,
+    "records_with_suspicious_specifications": 0,
+    "records_requiring_manual_review": 0,
+    "excluded_unlaunched_records_count": 0
+  }
+}

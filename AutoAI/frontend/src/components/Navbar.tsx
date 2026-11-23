@@ -1,12 +1,15 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Car, Search, Bot, Sparkles, GitCompare, Heart, Shield, LogOut, User } from "lucide-react";
+import { Car, Search, Bot, Sparkles, GitCompare, Heart, Shield, LogOut, User, Target, Rocket, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 const links = [
   { to: "/", label: "Dashboard", icon: Car },
   { to: "/search", label: "Catalog", icon: Search },
+  { to: "/launches", label: "New Launches", icon: Rocket },
+  { to: "/data-quality", label: "Data Quality", icon: ShieldCheck },
   { to: "/chat", label: "AI Assistant", icon: Bot },
+  { to: "/finder", label: "Car Finder", icon: Target },
   { to: "/quiz", label: "Quiz", icon: Sparkles },
   { to: "/compare", label: "Compare", icon: GitCompare },
   { to: "/wishlist", label: "Wishlist", icon: Heart },
